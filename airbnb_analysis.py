@@ -217,6 +217,11 @@ class AirbnbAnalysis:
         """探索性数据分析"""
         print("\n=== 探索性数据分析 ===")
         
+        # 创建图表保存目录
+        import os
+        if not os.path.exists('charts'):
+            os.makedirs('charts')
+        
         # 1. 描述性统计
         print("\n1. 描述性统计:")
         print(self.merged_df[['price', 'avg_price', 'available_days', 'review_count']].describe())
@@ -225,22 +230,74 @@ class AirbnbAnalysis:
         print("\n2. 房源类型分布:")
         room_type_dist = self.merged_df['room_type'].value_counts()
         print(room_type_dist)
+        # 绘制房源类型分布饼图
+        plt.figure(figsize=(8, 6))
+        room_type_dist.plot.pie(autopct='%1.1f%%', startangle=90)
+        plt.title('房源类型分布')
+        plt.ylabel('')
+        plt.savefig('charts/room_type_distribution.png')
+        plt.close()
         
         # 3. 区域分布
         print("\n3. 区域分布:")
         neighbourhood_dist = self.merged_df['neighbourhood'].value_counts().head(10)
         print(neighbourhood_dist)
+        # 绘制区域分布条形图
+        plt.figure(figsize=(10, 6))
+        neighbourhood_dist.plot(kind='bar')
+        plt.title('区域分布')
+        plt.xlabel('区域')
+        plt.ylabel('房源数量')
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+        plt.savefig('charts/neighbourhood_distribution.png')
+        plt.close()
         
         # 4. 价格分布
         print("\n4. 价格分布:")
         print(f"平均价格: {self.merged_df['price'].mean():.2f}")
         print(f"价格中位数: {self.merged_df['price'].median():.2f}")
+        # 绘制价格分布直方图
+        plt.figure(figsize=(10, 6))
+        plt.hist(self.merged_df['price'], bins=30, alpha=0.7)
+        plt.title('价格分布')
+        plt.xlabel('价格')
+        plt.ylabel('频率')
+        plt.savefig('charts/price_distribution.png')
+        plt.close()
         
         # 5. 相关性分析
         print("\n5. 相关性分析:")
         corr_cols = ['price', 'minimum_nights', 'number_of_reviews', 'reviews_per_month', 'availability_365', 'avg_price', 'available_days', 'review_count']
         corr_matrix = self.merged_df[corr_cols].corr()
         print(corr_matrix)
+        # 绘制相关性热力图
+        plt.figure(figsize=(12, 10))
+        sns.heatmap(corr_matrix, annot=True, cmap='coolwarm', fmt='.2f')
+        plt.title('特征相关性热力图')
+        plt.tight_layout()
+        plt.savefig('charts/correlation_heatmap.png')
+        plt.close()
+        
+        # 6. 价格与可预订天数关系
+        plt.figure(figsize=(10, 6))
+        plt.scatter(self.merged_df['price'], self.merged_df['available_days'], alpha=0.5)
+        plt.title('价格与可预订天数关系')
+        plt.xlabel('价格')
+        plt.ylabel('可预订天数')
+        plt.savefig('charts/price_vs_availability.png')
+        plt.close()
+        
+        # 7. 评论数量与价格关系
+        plt.figure(figsize=(10, 6))
+        plt.scatter(self.merged_df['review_count'], self.merged_df['price'], alpha=0.5)
+        plt.title('评论数量与价格关系')
+        plt.xlabel('评论数量')
+        plt.ylabel('价格')
+        plt.savefig('charts/reviews_vs_price.png')
+        plt.close()
+        
+        print("图表已保存到charts目录")
     
     def feature_engineering(self):
         """特征工程"""
@@ -336,6 +393,36 @@ class AirbnbAnalysis:
         print("\n=== 模型对比 ===")
         results_df = pd.DataFrame(self.results).T
         print(results_df)
+        
+        # 绘制模型性能对比图
+        import os
+        if not os.path.exists('charts'):
+            os.makedirs('charts')
+        
+        # 绘制准确率对比图
+        plt.figure(figsize=(10, 6))
+        results_df['accuracy'].plot(kind='bar')
+        plt.title('模型准确率对比')
+        plt.xlabel('模型')
+        plt.ylabel('准确率')
+        plt.ylim(0, 1.1)
+        plt.tight_layout()
+        plt.savefig('charts/model_accuracy_comparison.png')
+        plt.close()
+        
+        # 绘制所有指标对比图
+        plt.figure(figsize=(12, 8))
+        results_df.plot(kind='bar')
+        plt.title('模型性能对比')
+        plt.xlabel('模型')
+        plt.ylabel('评分')
+        plt.ylim(0, 1.1)
+        plt.legend()
+        plt.tight_layout()
+        plt.savefig('charts/model_performance_comparison.png')
+        plt.close()
+        
+        print("模型性能图表已保存到charts目录")
     
     def generate_report(self):
         """生成实验报告"""
